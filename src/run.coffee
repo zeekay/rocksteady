@@ -6,7 +6,7 @@ error = (message) ->
 
 usage = ->
   console.log '''
-  xian server.js [options]
+  rocksteady server.js [options]
 
   Options:
     --port       Specify port to listen on.
