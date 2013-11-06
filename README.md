@@ -1,2 +1,3 @@
-# xian
-however the fuck you say it.
+# Rocksteady
+### Drink blazin' electric death, downtime!
+Zero downtime app server for Node.js.

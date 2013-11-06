@@ -1,15 +1,15 @@
 {
-  "name": "xian",
+  "name": "rocksteady",
   "version": "0.2.11",
-  "description": "however the fuck you say it",
+  "description": "Drink blazin' electric death, downtime!",
   "main": "lib/",
   "bin": {
-    "xian": "bin/xian"
+    "rocksteady": "bin/rocksteady"
   },
   "scripts": {
     "test": "cake test"
   },
-  "repository": "https://github.com/zeekay/xian",
+  "repository": "https://github.com/zeekay/rocksteady",
   "author": {
     "name": "Zach Kelling",
     "email": "zeekayy@gmail.com",
