@@ -2,6 +2,7 @@ try
   require 'coffee-script'
 catch err
 
+http = require 'http'
 (require 'postmortem').install()
 
 # pull out various env variables set by master
@@ -15,6 +16,7 @@ catch err
   SET_UID } = process.env
 
 shuttingDown = false
+server       = null
 
 # serialize exceptions
 serialize = (err) ->
@@ -28,9 +30,7 @@ shutdown = ->
   return if shuttingDown
   shuttingDown = true
 
-  try
-    server.close -> process.exit 0
-  catch _
+  server.close -> process.exit 0
 
   setTimeout ->
     process.exit 0
@@ -63,15 +63,15 @@ else
   # simply require server
   server = require SERVER_MODULE
 
-# begin listening
+unless server instanceof http.Server
+  server = http.createServer server
+
 server.listen PORT, ->
   if DROP_PRIVILEGES and process.getgid() == 0
     process.setgid SET_GID
     process.setuid SET_UID
 
-# set socket timeout
-if server instanceof require('http').Server
-  server.setTimeout SOCKET_TIMEOUT
+server.setTimeout SOCKET_TIMEOUT
 
 # handle shutdown
 process.on 'SIGTERM', -> shutdown()

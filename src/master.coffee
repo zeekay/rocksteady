@@ -4,15 +4,6 @@ fs      = require 'fs'
 http    = require 'http'
 path    = require 'path'
 
-# Start up debugger
-debug = ->
-  for id, worker of cluster.workers
-
-    # Only kill first worker
-    pid = worker.process.pid
-    require('child_process').exec "kill -s 30 #{pid}"
-    return
-
 # deserialize exception object back into error object
 deserialize = (exc) ->
   for frame in exc.structuredStackTrace
@@ -52,8 +43,8 @@ class Master extends events.EventEmitter
       uid: 'www-data'
 
     @setupMaster = options.setupMaster ?
-      exec : __dirname + '/worker.js'
-      silent : false
+      exec:   __dirname + '/worker.js'
+      silent: false
     cluster.setupMaster @setupMaster
 
     switch typeof options.logger
@@ -96,6 +87,9 @@ class Master extends events.EventEmitter
             @emit 'worker:killed', worker
           , @forceKillTimeout
 
+        when 'shutdown'
+          @emit 'worker:shutdown', worker
+
         when 'watch'
           @emit 'watch', message
 
@@ -126,7 +120,8 @@ class Master extends events.EventEmitter
 
   # reload worker
   reloadNext: ->
-    return unless (worker = @reloading.shift())?
+    unless (worker = @reloading.shift())?
+      return @reloading = false
 
     worker.reloading = true
 
@@ -140,13 +135,9 @@ class Master extends events.EventEmitter
 
   # reload all workers
   reload: ->
-    return unless @running
+    return if @shuttingDown or @reloading
 
-    @emit 'reload'
-    @running = false
-
-    @once 'worker:listening', (worker, address) =>
-      @running = true
+    @emit 'reloading'
 
     @reloading = (worker for id, worker of @workers when not worker.reloading)
     @reloadNext()
@@ -169,17 +160,16 @@ class Master extends events.EventEmitter
       process.exit 1
     , @forceKillTimeout
 
+  # Start up debugger
+  debug: ->
+    for id, worker of cluster.workers
+      # Only kill first worker
+      pid = worker.process.pid
+      require('child_process').exec "kill -s 30 #{pid}"
+      return
+
   # run worker modules
   run: (cb) ->
-    # try require server module
-    try
-      server = require @serverModule
-    catch err
-      return cb err
-
-    unless server? and server.listen?
-      return cb new Error "Server (#{serverModule}) has no listen method"
-
     @once 'worker:listening', (worker, address) =>
       @running = true
       cb null
@@ -193,6 +183,17 @@ class Master extends events.EventEmitter
     process.on 'SIGHUP',  => @reload()
     process.on 'SIGTERM', => @shutdown()
     process.on 'SIGINT',  => @shutdown()
+    process.on 'SIGUSR1', => @debug()
+
+    process.stdin.resume()
+    process.stdin.setEncoding 'utf8'
+    process.stdin.setRawMode true
+    process.stdin.on 'data', (char) =>
+      switch char
+        when '\u0003'  # ctrl-c
+          @shutdown()
+        when '\u0004'  # ctrl-d
+          @debug()
 
     @on 'worker:exception', (worker, err) =>
       @logger.log 'error', err, pid: worker.process.pid
@@ -204,7 +205,7 @@ class Master extends events.EventEmitter
       @logger.log 'info', 'worker restarting', pid: worker.process.pid
     @on 'shutdown', =>
       @logger.log 'info', 'shutting down'
-    @on 'reload', =>
+    @on 'reloading', =>
       @logger.log 'info', 'reloading'
 
     # start watching files for changes
@@ -212,7 +213,9 @@ class Master extends events.EventEmitter
 
   # watch files for changes and reload gracefully
   watch: (dir = process.cwd()) ->
-    bebop = (require 'bebop').websocket()
+    server = http.createServer()
+    bebop = (require 'bebop').websocket server: server
+    server.listen 3456
 
     watch = (require 'vigil').watch dir, (filename, stats, isModule) =>
       @logger.log 'info', "#{filename} modified"
@@ -223,7 +226,10 @@ class Master extends events.EventEmitter
         # change in backend, reload application and then bebop
         @once 'worker:listening', (worker, address) =>
           bebop.modified filename
-        @reload()
+
+        # should just @reload() , but not working properly for some reason
+        worker.kill() for id, worker of @workers
+        @fork()
 
     # worker has detected file to watch
     @on 'watch', ({filename, isDirectory}) ->
