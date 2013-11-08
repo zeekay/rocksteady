@@ -19,7 +19,8 @@
   "readmeFilename": "README.md",
   "dependencies": {
     "postmortem": "~0.1.1",
-    "vigil": "~0.2.2"
+    "vigil": "~0.2.2",
+    "bebop": "~0.9.3"
   },
   "devDependencies": {
     "chai": "~1.8.1",
