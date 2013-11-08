@@ -2,9 +2,11 @@ try
   require 'coffee-script'
 catch err
 
-require('postmortem').install()
+(require 'postmortem').install()
 
-{ FORCE_KILL_TIMEOUT
+# pull out various env variables set by master
+{ NODE_ENV
+  FORCE_KILL_TIMEOUT
   PORT
   SERVER_MODULE
   SOCKET_TIMEOUT
@@ -14,12 +16,14 @@ require('postmortem').install()
 
 shuttingDown = false
 
+# serialize exceptions
 serialize = (err) ->
   message:              err.message
   name:                 err.name
   stack:                err.stack
   structuredStackTrace: err.structuredStackTrace
 
+# shutdown worker
 shutdown = ->
   return if shuttingDown
   shuttingDown = true
@@ -45,8 +49,23 @@ process.on 'message', (message) ->
     when 'stop'
       shutdown()
 
-server = require SERVER_MODULE
+# detect modules being used by server and notify master to watch them for changes
+if NODE_ENV == 'development'
+  bebop = require 'bebop'
+  vigil = require 'vigil'
 
+  vigil.vm (filename, stats) ->
+    process.send type: 'watch',
+      filename: filename
+      isDirectory: stats.isDirectory()
+
+  # require server and attach bebop to serve static files
+  server = bebop.middleware require SERVER_MODULE
+else
+  # simply require server
+  server = require SERVER_MODULE
+
+# begin listening
 server.listen PORT, ->
   if DROP_PRIVILEGES and process.getgid() == 0
     process.setgid SET_GID
@@ -55,5 +74,6 @@ server.listen PORT, ->
 # set socket timeout
 server.setTimeout SOCKET_TIMEOUT
 
+# handle shutdown
 process.on 'SIGTERM', -> shutdown()
 process.on 'SIGINT', -> shutdown()

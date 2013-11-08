@@ -13,6 +13,7 @@ debug = ->
     require('child_process').exec "kill -s 30 #{pid}"
     return
 
+# deserialize exception object back into error object
 deserialize = (exc) ->
   for frame in exc.structuredStackTrace
     {path, line, isNative, name, type, method} = frame
@@ -40,6 +41,7 @@ class Master extends events.EventEmitter
     @port             = options.port             ? 3000
     @restartCooldown  = options.restartCooldown  ? 2000
     @socketTimeout    = options.socketTimeout    ? 10000
+    @env              = options.env              ? process.env.NODE_ENV ? 'development'
 
     @shuttingDown = false
     @reloading    = []
@@ -73,6 +75,7 @@ class Master extends events.EventEmitter
   # fork worker
   fork: ->
     options =
+      NODE_ENV:           @env
       FORCE_KILL_TIMEOUT: @forceKillTimeout
       PORT:               @port
       SERVER_MODULE:      @serverModule
@@ -99,10 +102,14 @@ class Master extends events.EventEmitter
             @emit 'worker:killed', worker
           , @forceKillTimeout
 
+        when 'watch'
+          @emit 'watch', message
+
     @workers[worker.id] = worker
 
     @emit 'worker:forked', worker
 
+  # handle worker exit
   onExit: (worker, code, signal) ->
     delete @workers[worker.id]
 
@@ -118,6 +125,7 @@ class Master extends events.EventEmitter
     if @shuttingDown and Object.keys(@workers).length == 0
       process.exit 0
 
+  # handle worker listening
   onListening: (worker, address) ->
     @emit 'worker:listening', worker, address
     @reloadNext() if @reloading.length > 0
@@ -136,6 +144,7 @@ class Master extends events.EventEmitter
     worker.send type: 'stop'
     @fork()
 
+  # reload all workers
   reload: ->
     return unless @running
 
@@ -148,6 +157,7 @@ class Master extends events.EventEmitter
     @reloading = (worker for id, worker of @workers when not worker.reloading)
     @reloadNext()
 
+  # shutdown workers
   shutdown: ->
     process.exit 1 if @shuttingDown
 
@@ -165,32 +175,66 @@ class Master extends events.EventEmitter
       process.exit 1
     , @forceKillTimeout
 
-  run: (callback) ->
+  # run worker modules
+  run: (cb) ->
     @once 'worker:listening', (worker, address) =>
       @running = true
-      callback null
+      cb null
 
     @fork() for n in [1..@numWorkers]
 
     cluster.on 'exit', (worker, code, signal) => @onExit worker, code, signal
     cluster.on 'listening', (worker, address) => @onListening worker, address
 
+    # handle various signals
     process.on 'SIGHUP',  => @reload()
     process.on 'SIGTERM', => @shutdown()
     process.on 'SIGINT',  => @shutdown()
 
-    if @logger
-      @on 'worker:exception', (worker, err) =>
-        @logger.log 'error', err, pid: worker.process.pid
-      @on 'worker:listening', (worker, address) =>
-        @logger.log 'info', "worker listening on #{address.address}:#{address.port}", pid: worker.process.pid
-      @on 'worker:killed', (worker) =>
-        @logger.log 'error', 'worker killed', pid: worker.process.pid
-      @on 'worker:restarting', (worker) =>
-        @logger.log 'info', 'worker restarting', pid: worker.process.pid
-      @on 'shutdown', =>
-        @logger.log 'info', 'shutting down'
-      @on 'reload', =>
-        @logger.log 'info', 'reloading'
+    # default logging
+    @startLogging() if @logger
+
+    # start watching files for changes
+    @startWatching() if @env == 'development'
+
+  startLogging: ->
+    @on 'worker:exception', (worker, err) =>
+      @logger.log 'error', err, pid: worker.process.pid
+    @on 'worker:listening', (worker, address) =>
+      @logger.log 'info', "worker listening on #{address.address}:#{address.port}", pid: worker.process.pid
+    @on 'worker:killed', (worker) =>
+      @logger.log 'error', 'worker killed', pid: worker.process.pid
+    @on 'worker:restarting', (worker) =>
+      @logger.log 'info', 'worker restarting', pid: worker.process.pid
+    @on 'shutdown', =>
+      @logger.log 'info', 'shutting down'
+    @on 'reload', =>
+      @logger.log 'info', 'reloading'
+
+  # watch files for changes and reload gracefully
+  startWatching: ->
+    bebop   = new (require 'bebop').Bebop()
+    watcher = new (require 'vigil').Watcher()
+
+    bebop.run()
+
+    watcher.on 'modified', (filename, vm) ->
+      @logger.log 'info', "#{filename} modified"
+
+      if vm
+        # change in backend, reload application and then bebop
+        @once 'worker:listening', (worker, address) =>
+          bebop.reload()
+        @reload()
+      else
+        # change in frontend, just reload bebop
+        bebop.reload()
+
+    # worker has detected file to watch
+    @on 'watch', ({filename, isDirectory}) ->
+      watcher.watch
+        filename:  filename
+        directory: isDirectory
+        vm:        true
 
 module.exports = Master
