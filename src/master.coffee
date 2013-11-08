@@ -35,13 +35,12 @@ deserialize = (exc) ->
 class Master extends events.EventEmitter
   constructor: (serverModule, options = {}) ->
     @serverModule     = require.resolve path.resolve serverModule
-
+    @env              = options.env              ? process.env.NODE_ENV ? 'development'
     @forceKillTimeout = options.forceKillTimeout ? 30000
-    @numWorkers       = options.workers          ? require('os').cpus().length
+    @numWorkers       = options.workers          ? if (@env == 'development') then 1 else require('os').cpus().length
     @port             = options.port             ? 3000
     @restartCooldown  = options.restartCooldown  ? 2000
     @socketTimeout    = options.socketTimeout    ? 10000
-    @env              = options.env              ? process.env.NODE_ENV ? 'development'
 
     @shuttingDown = false
     @reloading    = []
@@ -178,8 +177,8 @@ class Master extends events.EventEmitter
     catch err
       return cb err
 
-    unless server instanceof http.Server
-      return cb new Error 'Server (#{serverModule}) must be an instance of http.Server'
+    unless server? and server.listen?
+      return cb new Error "Server (#{serverModule}) has no listen method"
 
     @once 'worker:listening', (worker, address) =>
       @running = true
@@ -195,13 +194,6 @@ class Master extends events.EventEmitter
     process.on 'SIGTERM', => @shutdown()
     process.on 'SIGINT',  => @shutdown()
 
-    # default logging
-    @startLogging() if @logger
-
-    # start watching files for changes
-    # @startWatching() if @env == 'development'
-
-  startLogging: ->
     @on 'worker:exception', (worker, err) =>
       @logger.log 'error', err, pid: worker.process.pid
     @on 'worker:listening', (worker, address) =>
@@ -215,30 +207,26 @@ class Master extends events.EventEmitter
     @on 'reload', =>
       @logger.log 'info', 'reloading'
 
+    # start watching files for changes
+    @watch() if @env == 'development'
+
   # watch files for changes and reload gracefully
-  startWatching: ->
-    bebop   = new (require 'bebop').Bebop()
-    watcher = new (require 'vigil').Watcher()
+  watch: (dir = process.cwd())->
+    bebop = (require 'bebop').websocket()
 
-    bebop.run()
-
-    watcher.on 'modified', (filename, vm) ->
+    watch = (require 'vigil').watch dir, (filename, stats, isModule) ->
       @logger.log 'info', "#{filename} modified"
 
-      if vm
+      unless isModule
+        bebop.modified filename
+      else
         # change in backend, reload application and then bebop
         @once 'worker:listening', (worker, address) =>
-          bebop.reload()
+          bebop.modified filename
         @reload()
-      else
-        # change in frontend, just reload bebop
-        bebop.reload()
 
     # worker has detected file to watch
     @on 'watch', ({filename, isDirectory}) ->
-      watcher.watch
-        filename:  filename
-        directory: isDirectory
-        vm:        true
+      watch filename, (not isDirectory)
 
 module.exports = Master
