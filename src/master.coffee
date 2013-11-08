@@ -67,11 +67,6 @@ class Master extends events.EventEmitter
       else
         @logger = false
 
-    server = require @serverModule
-
-    unless server instanceof http.Server
-      throw new Error 'Server (#{serverModule}) must be an instance of http.Server'
-
   # fork worker
   fork: ->
     options =
@@ -177,6 +172,15 @@ class Master extends events.EventEmitter
 
   # run worker modules
   run: (cb) ->
+    # try require server module
+    try
+      server = require @serverModule
+    catch err
+      return cb err
+
+    unless server instanceof http.Server
+      return cb new Error 'Server (#{serverModule}) must be an instance of http.Server'
+
     @once 'worker:listening', (worker, address) =>
       @running = true
       cb null
@@ -195,7 +199,7 @@ class Master extends events.EventEmitter
     @startLogging() if @logger
 
     # start watching files for changes
-    @startWatching() if @env == 'development'
+    # @startWatching() if @env == 'development'
 
   startLogging: ->
     @on 'worker:exception', (worker, err) =>
