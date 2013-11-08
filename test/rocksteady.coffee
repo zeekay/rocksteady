@@ -16,3 +16,7 @@ describe 'rocksteady', ->
     it 'should fail to run server module without server', (done) ->
       rocksteady.run __dirname + '/assets/server-none', port: 3333, logger: false, (err) ->
         done() if err?
+
+    it 'should fail to run server module without server', (done) ->
+      rocksteady.run __dirname + '/assets/server-none', port: 3333, logger: false, (err) ->
+        done() if err?

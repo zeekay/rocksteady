@@ -51,16 +51,14 @@ process.on 'message', (message) ->
 
 # detect modules being used by server and notify master to watch them for changes
 if NODE_ENV == 'development'
-  bebop = require 'bebop'
-  vigil = require 'vigil'
-
-  vigil.vm (filename, stats) ->
-    process.send type: 'watch',
+  require('vigil').vm (filename, stats) ->
+    process.send
+      type: 'watch',
       filename: filename
       isDirectory: stats.isDirectory()
 
   # require server and attach bebop to serve static files
-  server = bebop.middleware require SERVER_MODULE
+  server = require('bebop').middleware attach: (require SERVER_MODULE), port: 3456
 else
   # simply require server
   server = require SERVER_MODULE
@@ -72,7 +70,8 @@ server.listen PORT, ->
     process.setuid SET_UID
 
 # set socket timeout
-server.setTimeout SOCKET_TIMEOUT
+if server instanceof require('http').Server
+  server.setTimeout SOCKET_TIMEOUT
 
 # handle shutdown
 process.on 'SIGTERM', -> shutdown()
