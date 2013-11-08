@@ -211,10 +211,10 @@ class Master extends events.EventEmitter
     @watch() if @env == 'development'
 
   # watch files for changes and reload gracefully
-  watch: (dir = process.cwd())->
+  watch: (dir = process.cwd()) ->
     bebop = (require 'bebop').websocket()
 
-    watch = (require 'vigil').watch dir, (filename, stats, isModule) ->
+    watch = (require 'vigil').watch dir, (filename, stats, isModule) =>
       @logger.log 'info', "#{filename} modified"
 
       unless isModule
