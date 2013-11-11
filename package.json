@@ -1,6 +1,6 @@
 {
   "name": "rocksteady",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Drink blazin' electric death, downtime!",
   "main": "lib/",
   "bin": {
