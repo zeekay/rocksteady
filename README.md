@@ -1,3 +1,3 @@
-# Rocksteady
-### Drink blazin' electric death, downtime!
-Zero downtime app server for Node.js.
+## Rocksteady
+#### Drink blazin' electric death, downtime!
+Fast, zero-downtime apps for production enviroments.
