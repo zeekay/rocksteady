@@ -1,7 +1,17 @@
 {
   "name": "rocksteady",
   "version": "1.0.6",
-  "description": "Drink blazin' electric death, downtime!",
+  "description": "Drink blazin' electric death, downtime! Fast, zero-downtime apps for production enviroments.",
+  "keywords": [
+    "zero-downtime",
+    "server",
+    "cluster",
+    "livereload"
+  ],
+  "homepage": "http://github.com/zeekay/rocksteady",
+  "bugs": {
+    "url": "http://github.com/zeekay/rocksteady/issues"
+  },
   "main": "lib/",
   "bin": {
     "rocksteady": "bin/rocksteady"
@@ -9,11 +19,14 @@
   "scripts": {
     "test": "cake test"
   },
-  "repository": "https://github.com/zeekay/rocksteady",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/zeekay/shh"
+  },
   "author": {
     "name": "Zach Kelling",
-    "email": "zeekayy@gmail.com",
-    "url": "https://whatit.is"
+    "email": "zk@monoid.io",
+    "url": "http://zeekay.io"
   },
   "license": "BSD",
   "readmeFilename": "README.md",
