@@ -3,10 +3,13 @@
   "version": "1.0.7",
   "description": "Drink blazin' electric death, downtime! Fast, zero-downtime apps for production enviroments.",
   "keywords": [
-    "zero-downtime",
-    "server",
     "cluster",
-    "livereload"
+    "reloader",
+    "runner",
+    "server",
+    "zero-downtime",
+    "bebop",
+    "browser reload"
   ],
   "homepage": "http://github.com/zeekay/rocksteady",
   "bugs": {
@@ -21,7 +24,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/zeekay/shh"
+    "url": "https://github.com/zeekay/rocksteady"
   },
   "author": {
     "name": "Zach Kelling",
