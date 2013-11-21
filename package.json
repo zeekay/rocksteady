@@ -20,6 +20,7 @@
     "rocksteady": "bin/rocksteady"
   },
   "scripts": {
+    "prepublish": "cake build:prepublish",
     "test": "cake test"
   },
   "repository": {
