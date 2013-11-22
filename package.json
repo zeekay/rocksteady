@@ -42,6 +42,7 @@
   "devDependencies": {
     "chai": "~1.8.1",
     "source-map-support": "~0.2.3",
-    "mocha": "~1.14.0"
+    "mocha": "~1.14.0",
+    "coffee-script": "~1.6.3"
   }
 }
