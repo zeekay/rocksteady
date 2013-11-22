@@ -9,7 +9,7 @@ env = process.env.NODE_ENV ? 'development'
 
 class Master extends events.EventEmitter
   constructor: (serverModule, options = {}) ->
-    @serverModule     = require.resolve path.resolve serverModule
+    @serverModule     = path.resolve serverModule
     @forceKillTimeout = options.forceKillTimeout ? 30000
     @numWorkers       = options.workers          ? if (env == 'development') then 1 else require('os').cpus().length
     @port             = options.port             ? 3000
