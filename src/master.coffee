@@ -135,7 +135,7 @@ class Master extends events.EventEmitter
 
   # reload all workers
   reload: ->
-    return if @shuttingDown or @reloading
+    return if @shuttingDown or @reloading.length
 
     @emit 'reloading'
 
