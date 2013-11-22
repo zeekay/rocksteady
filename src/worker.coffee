@@ -1,3 +1,7 @@
+http       = require 'http'
+utils      = require './utils'
+postmortem = require 'postmortem'
+
 # pull out various env variables set by master
 { NODE_ENV
   FORCE_KILL_TIMEOUT
@@ -14,9 +18,7 @@ try
 catch err
   require 'coffee-script'
 
-http  = require 'http'
-utils = require './utils'
-(require 'postmortem').install()
+postmortem.install()
 
 shuttingDown = false
 server       = null
@@ -53,15 +55,18 @@ if NODE_ENV == 'development'
       filename: filename
       isDirectory: stats.isDirectory()
 
-  # require server and attach bebop to serve static files
-  server = require('bebop').middleware attach: (require SERVER_MODULE), port: 3456
-else
-  # simply require server
-  server = require SERVER_MODULE
+# try to require server module
+server = require SERVER_MODULE
 
+if NODE_ENV == 'development'
+  # require server and attach bebop to serve static files
+  server = require('bebop').middleware attach: server, port: 3456
+
+# we need a proper http.Server
 unless server instanceof http.Server
   server = http.createServer server
 
+# start listening
 server.listen PORT, ->
   if DROP_PRIVILEGES and process.getgid() == 0
     process.setgid SET_GID
