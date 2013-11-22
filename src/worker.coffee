@@ -1,10 +1,3 @@
-try
-  require 'coffee-script'
-catch err
-
-http = require 'http'
-(require 'postmortem').install()
-
 # pull out various env variables set by master
 { NODE_ENV
   FORCE_KILL_TIMEOUT
@@ -15,15 +8,18 @@ http = require 'http'
   SET_GID
   SET_UID } = process.env
 
+# try to resolve server_module, if this fails, assume it's coffeescript
+try
+  require.resolve SERVER_MODULE
+catch err
+  require 'coffee-script'
+
+http  = require 'http'
+utils = require './utils'
+(require 'postmortem').install()
+
 shuttingDown = false
 server       = null
-
-# serialize exceptions
-serialize = (err) ->
-  message:              err.message
-  name:                 err.name
-  stack:                err.stack
-  structuredStackTrace: err.structuredStackTrace
 
 # shutdown worker
 shutdown = ->
@@ -38,7 +34,7 @@ shutdown = ->
 
 # marshal runtime errors back to master process
 process.on 'uncaughtException', (err) ->
-  process.send type: 'error', error: serialize err
+  process.send type: 'error', error: utils.serialize err
   shutdown()
 
 # handle shutdown gracefully
