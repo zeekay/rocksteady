@@ -3,35 +3,19 @@ events  = require 'events'
 fs      = require 'fs'
 http    = require 'http'
 path    = require 'path'
+utils   = require './utils'
 
-# deserialize exception object back into error object
-deserialize = (exc) ->
-  for frame in exc.structuredStackTrace
-    {path, line, isNative, name, type, method} = frame
-    do (frame, path, line, isNative, name, type, method) ->
-      frame.getFileName     = -> path
-      frame.getLineNumber   = -> line
-      frame.isNative        = -> isNative
-      frame.getFunctionName = -> name
-      frame.getTypeName     = -> type
-      frame.getMethodName   = -> method
-
-  err = new Error()
-  err.name                 = exc.name
-  err.message              = exc.message
-  err.stack                = exc.stack
-  err.structuredStackTrace = exc.structuredStackTrace
-  err
+env = process.env.NODE_ENV ? 'development'
 
 class Master extends events.EventEmitter
   constructor: (serverModule, options = {}) ->
     @serverModule     = require.resolve path.resolve serverModule
-    @env              = options.env              ? process.env.NODE_ENV ? 'development'
     @forceKillTimeout = options.forceKillTimeout ? 30000
-    @numWorkers       = options.workers          ? if (@env == 'development') then 1 else require('os').cpus().length
+    @numWorkers       = options.workers          ? if (env == 'development') then 1 else require('os').cpus().length
     @port             = options.port             ? 3000
     @restartCooldown  = options.restartCooldown  ? 2000
     @socketTimeout    = options.socketTimeout    ? 10000
+    @watchForChanges  = options.watch            ? if (env == 'development') then true else false
 
     @shuttingDown = false
     @reloading    = []
@@ -53,7 +37,7 @@ class Master extends events.EventEmitter
       when 'object'
         @logger = options.logger
       when 'undefined'
-        @logger = require('./utils').logger
+        @logger = utils.logger
       else
         @logger = false
 
@@ -76,7 +60,7 @@ class Master extends events.EventEmitter
     worker.on 'message', (message) =>
       switch message.type
         when 'error'
-          @emit 'worker:exception', worker, deserialize message.error
+          @emit 'worker:exception', worker, utils.deserialize message.error
 
           setTimeout =>
             @fork()
@@ -212,7 +196,7 @@ class Master extends events.EventEmitter
         @logger.log 'info', 'reloading'
 
     # start watching files for changes
-    @watch() if @env == 'development'
+    @watch() if @watchForChanges
 
   # watch files for changes and reload gracefully
   watch: (dir = process.cwd()) ->

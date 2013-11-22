@@ -28,3 +28,34 @@ for level in ['info', 'debug', 'warn', 'error']
   do (level) ->
     logger[level] = (message, metadata) ->
       logger.log level, message, metadata
+
+# serialize errors
+exports.serialize = (err) ->
+  message:              err.message
+  name:                 err.name
+  stack:                err.stack
+  structuredStackTrace: err.structuredStackTrace
+
+# deserialize error object back into error object
+exports.deserialize = (err) ->
+  # pull out bits we'll need
+  {name, message, stack, structuredStackTrace} = err
+
+  # recreate structuredStacktrace methods
+  for frame in structuredStackTrace
+    {path, line, isNative, name, type, method} = frame
+    do (frame, path, line, isNative, name, type, method) ->
+      frame.getFileName     = -> path
+      frame.getLineNumber   = -> line
+      frame.isNative        = -> isNative
+      frame.getFunctionName = -> name
+      frame.getTypeName     = -> type
+      frame.getMethodName   = -> method
+
+  # create new real error object
+  err = new Error()
+  err.name                 = name
+  err.message              = message
+  err.stack                = stack
+  err.structuredStackTrace = structuredStackTrace
+  err
