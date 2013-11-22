@@ -180,6 +180,8 @@ class Master extends events.EventEmitter
             @shutdown()
           when '\u0004'  # ctrl-d
             @debug()
+          when '\u0012'  # ctrl-r
+            @reload()
 
     if @logger
       @on 'worker:exception', (worker, err) =>
