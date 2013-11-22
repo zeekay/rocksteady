@@ -197,18 +197,19 @@ class Master extends events.EventEmitter
           when '\u0004'  # ctrl-d
             @debug()
 
-    @on 'worker:exception', (worker, err) =>
-      @logger.log 'error', err, pid: worker.process.pid
-    @on 'worker:listening', (worker, address) =>
-      @logger.log 'info', "worker listening on #{address.address}:#{address.port}", pid: worker.process.pid
-    @on 'worker:killed', (worker) =>
-      @logger.log 'error', 'worker killed', pid: worker.process.pid
-    @on 'worker:restarting', (worker) =>
-      @logger.log 'info', 'worker restarting', pid: worker.process.pid
-    @on 'shutdown', =>
-      @logger.log 'info', 'shutting down'
-    @on 'reloading', =>
-      @logger.log 'info', 'reloading'
+    if @logger
+      @on 'worker:exception', (worker, err) =>
+        @logger.log 'error', err, pid: worker.process.pid
+      @on 'worker:listening', (worker, address) =>
+        @logger.log 'info', "worker listening on #{address.address}:#{address.port}", pid: worker.process.pid
+      @on 'worker:killed', (worker) =>
+        @logger.log 'error', 'worker killed', pid: worker.process.pid
+      @on 'worker:restarting', (worker) =>
+        @logger.log 'info', 'worker restarting', pid: worker.process.pid
+      @on 'shutdown', =>
+        @logger.log 'info', 'shutting down'
+      @on 'reloading', =>
+        @logger.log 'info', 'reloading'
 
     # start watching files for changes
     @watch() if @env == 'development'
@@ -220,7 +221,7 @@ class Master extends events.EventEmitter
     server.listen 3456
 
     watch = (require 'vigil').watch dir, (filename, stats, isModule) =>
-      @logger.log 'info', "#{filename} modified"
+      @logger.log 'info', "#{filename} modified" if @logger
 
       unless isModule
         bebop.modified filename
