@@ -116,7 +116,7 @@ class Master extends events.EventEmitter
   # handle worker listening
   onListening: (worker, address) ->
     @emit 'worker:listening', worker, address
-    @reloadNext() if @reloading.length > 0
+    @reloadNext() if @reloading.length
 
   # reload worker
   reloadNext: ->
