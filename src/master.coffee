@@ -44,7 +44,7 @@ class Master extends events.EventEmitter
   # fork worker
   fork: ->
     options =
-      NODE_ENV:           @env
+      NODE_ENV:           env
       FORCE_KILL_TIMEOUT: @forceKillTimeout
       PORT:               @port
       SERVER_MODULE:      @serverModule
