@@ -185,15 +185,17 @@ class Master extends events.EventEmitter
     process.on 'SIGINT',  => @shutdown()
     process.on 'SIGUSR1', => @debug()
 
-    process.stdin.resume()
-    process.stdin.setEncoding 'utf8'
-    process.stdin.setRawMode true
-    process.stdin.on 'data', (char) =>
-      switch char
-        when '\u0003'  # ctrl-c
-          @shutdown()
-        when '\u0004'  # ctrl-d
-          @debug()
+    # listen for keyboard shortcuts if this is a terminal
+    if process.stdin.isTTY
+      process.stdin.resume()
+      process.stdin.setEncoding 'utf8'
+      process.stdin.setRawMode true
+      process.stdin.on 'data', (char) =>
+        switch char
+          when '\u0003'  # ctrl-c
+            @shutdown()
+          when '\u0004'  # ctrl-d
+            @debug()
 
     @on 'worker:exception', (worker, err) =>
       @logger.log 'error', err, pid: worker.process.pid
