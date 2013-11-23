@@ -36,6 +36,9 @@ Run `rocksteady -h` for a complete list of options.
       --watch            Watch for and reload server/browser on changes.
 
 ### API
+#### rocksteady(serverModule, [options])
+Returns a new instance of `Master` with given options.
+
 #### Class: rocksteady.Master
 `Master` represents a running app, it is an `EventEmitter`.
 
@@ -58,3 +61,46 @@ instance of `http.Server`
         - `uid` [String] uid to change to
     - `setupMaster` [Object] options to pass to `cluster`
     - `logger` [Object] logger to use
+
+#### Event: 'worker:exception'
+`function (worker, err) { }`
+
+Emitted when worker process messages an uncaught exception. `err` is a deserialized error message.
+
+#### Event: 'worker:forked'
+`function (worker) { }`
+
+Emitted when worker is forked.
+
+#### Event: 'worker:killed'
+`function (worker) { }`
+
+Emitted when worker is killed.
+
+#### Event: 'worker:restarting'
+`function (worker) { }`
+
+Emitted when worker is restarted.
+
+#### Event: 'worker:listening'
+`function (worker, address) { }`
+
+Emitted when worker is starts listening.
+
+#### Event: 'reloading'
+`function () { }`
+Emitted when reload begins.
+
+#### Event: 'shutdown'
+`function () { }`
+Emitted when shutdown ends.
+
+#### Event: 'watch'
+`function (message) { }`
+
+Emmited during development when a worker discovers a file to watch.
+
+- `message` [Object]
+    - `type` [String] always 'watch'
+    - `filename` [String] filename to watch, detected by worker.
+    - `isDirectory` [Boolean] whether or not it's a directory
