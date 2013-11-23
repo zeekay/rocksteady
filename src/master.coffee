@@ -60,7 +60,7 @@ class Master extends events.EventEmitter
     worker.on 'message', (message) =>
       switch message.type
         when 'error'
-          @emit 'worker:exception', worker, utils.deserialize message.error
+          @emit 'worker:error', worker, utils.deserialize message.error
 
           setTimeout =>
             @fork()
@@ -184,7 +184,7 @@ class Master extends events.EventEmitter
             @reload()
 
     if @logger
-      @on 'worker:exception', (worker, err) =>
+      @on 'worker:error', (worker, err) =>
         @logger.log 'error', err, pid: worker.process.pid
       @on 'worker:listening', (worker, address) =>
         @logger.log 'info', "worker listening on #{address.address}:#{address.port}", pid: worker.process.pid
