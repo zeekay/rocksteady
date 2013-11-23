@@ -9,8 +9,11 @@ usage = ->
   rocksteady server.js [options]
 
   Options:
-    --port       Specify port to listen on.
-    --workers    Number of workers to start.
+    --port             Specify port to listen on.
+    --workers          Number of workers to start.
+    --restart-cooldown Seconds to wait before respawning workers that die.
+    --force-kill       Seconds to wait before killing unresponsive worker.
+    --watch            Watch for and reload server/browser on changes.
   '''
   process.exit 0
 
@@ -26,6 +29,8 @@ while opt = args.shift()
       forceKillTimeout = parseInt args.shift(), 10
     when '--restart-cooldown'
       restartCooldown = parseInt args.shift(), 10
+    when '--watch', '-w'
+      watch = true
     when '--help', '-h'
       usage()
     else
