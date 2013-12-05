@@ -12,6 +12,7 @@ class Master extends events.EventEmitter
     @serverModule     = path.resolve serverModule
     @forceKillTimeout = options.forceKillTimeout ? 30000
     @numWorkers       = options.workers          ? if (env == 'development') then 1 else require('os').cpus().length
+    @host             = options.host             ? 'localhost'
     @port             = options.port             ? 3000
     @restartCooldown  = options.restartCooldown  ? 2000
     @socketTimeout    = options.socketTimeout    ? 10000
@@ -21,8 +22,8 @@ class Master extends events.EventEmitter
     @reloading    = []
     @workers      = {}
 
+    @dropPrivileges = options.dropPrivileges ? false
     @runAs = options.runAs ?
-      dropPrivileges: true
       gid: 'www-data'
       uid: 'www-data'
 
@@ -46,14 +47,13 @@ class Master extends events.EventEmitter
     options =
       NODE_ENV:           env
       FORCE_KILL_TIMEOUT: @forceKillTimeout
+      HOST:               @host
       PORT:               @port
       SERVER_MODULE:      @serverModule
       SOCKET_TIMEOUT:     @socketTimeout
-
-    if @runAs
-      options.DROP_PRIVILEGES = @runAs.dropPrivileges
-      options.SET_GID = @runAs.gid
-      options.SET_UID = @runAs.uid
+      DROP_PRIVILEGES:    @dropPrivileges
+      SET_GID:            @runAs.gid
+      SET_UID:            @runAs.uid
 
     worker = cluster.fork options
 
