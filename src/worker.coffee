@@ -5,6 +5,7 @@ postmortem = require 'postmortem'
 # pull out various env variables set by master
 { NODE_ENV
   FORCE_KILL_TIMEOUT
+  HOST
   PORT
   SERVER_MODULE
   SOCKET_TIMEOUT
@@ -67,8 +68,8 @@ unless server instanceof http.Server
   server = http.createServer server
 
 # start listening
-server.listen PORT, ->
-  if DROP_PRIVILEGES and process.getgid() == 0
+server.listen PORT, HOST, ->
+  if (JSON.parse DROP_PRIVILEGES) and process.getgid() == 0
     process.setgid SET_GID
     process.setuid SET_UID
 

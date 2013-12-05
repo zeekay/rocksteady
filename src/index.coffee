@@ -7,6 +7,7 @@ wrapper =
       [cb, opts] = [opts, ->]
 
     opts.forceKillTimeout ?= process.env.FORCE_KILL_TIMOUT
+    opts.host             ?= process.env.HOST
     opts.port             ?= process.env.PORT
     opts.restartCooldown  ?= process.env.RESTART_COOLDOWN
     opts.socketTimeout    ?= process.env.SOCKET_TIMEOUT
