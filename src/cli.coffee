@@ -9,6 +9,7 @@ usage = ->
   rocksteady server.js [options]
 
   Options:
+    --host             Specify host address to bind to, defaults to localhost.
     --port             Specify port to listen on.
     --workers          Number of workers to start.
     --restart-cooldown Seconds to wait before respawning workers that die.
@@ -21,6 +22,8 @@ serverModule = args.shift()
 
 while opt = args.shift()
   switch opt
+    when '--host', '-h'
+      host = args.shift()
     when '--port', '-p'
       port = parseInt args.shift(), 10
     when '--workers', '-n'
@@ -42,6 +45,7 @@ unless serverModule?
 
 require('./').run serverModule,
   forceKillTimeout: forceKillTimeout
+  host:             host
   port:             port
   restartCooldown:  restartCooldown
   workers:          workers
