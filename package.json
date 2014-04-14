@@ -32,7 +32,12 @@
     "email": "zk@monoid.io",
     "url": "http://zeekay.io"
   },
-  "license": "BSD",
+  "licenses": [
+    {
+      "type": "MIT",
+      "url": "https://github.com/zeekay/rocksteady/blob/master/LICENSE"
+    }
+  ],
   "readmeFilename": "README.md",
   "dependencies": {
     "postmortem": "~0.1.5",
