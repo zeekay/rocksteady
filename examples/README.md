@@ -1,2 +1,2 @@
-# requisite-express-app
-Example app demonstrating use of requisite with express.
+# rocksteady-express-app
+Example app demonstrating use of rocksteady with express.
