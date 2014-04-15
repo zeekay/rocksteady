@@ -1,0 +1,23 @@
+exec   = require('executive').interactive
+fs     = require 'fs'
+{root} = require('./lib').utils
+
+# Simple build function to compile javascript assets using requisite.
+# This will bundled your client-side code starting from assets/js/app.coffee
+# and write it to static/js/app.js.
+build = (done = ->) ->
+  require('requisite').bundle
+    export: 'app'
+    entry: root '/assets/js/app'
+  , (err, bundle) ->
+    throw err if err?
+
+    fs.writeFileSync 'static/js/app.js', bundle.toString()
+    done()
+
+task 'run', 'run server', ->
+  require('rocksteady').run './lib/server', ->
+    console.log 'listening on :3000'
+
+task 'build', 'build project', ->
+  build()
