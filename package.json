@@ -20,7 +20,7 @@
     "rocksteady": "bin/rocksteady"
   },
   "scripts": {
-    "prepublish": "cake build:prepublish",
+    "prepublish": "cake build",
     "test": "cake test"
   },
   "repository": {
@@ -45,9 +45,10 @@
     "vigil": "^0.2.11"
   },
   "devDependencies": {
-    "chai": "~1.8.1",
-    "coffee-script": "~1.6.3",
-    "mocha": "~1.14.0",
+    "chai": "^1.9.1",
+    "coffee-script": "~1.7.1",
+    "executive": "^0.4.7",
+    "mocha": "^1.18.2",
     "request": "^2.34.0"
   }
 }

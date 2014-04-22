@@ -11,9 +11,6 @@ task 'build', 'build project', (options) ->
   exec 'node_modules/.bin/coffee -bcm -o lib/ src/'
   exec 'node_modules/.bin/coffee -bcm -o .test/ test/'
 
-task 'build:prepublish', 'build project prepublish step', (options) ->
-  exec 'node_modules/.bin/coffee -bcm -o lib/ src/'
-
 task 'watch', 'watch for changes and recompile project', ->
   exec './node_modules/.bin/coffee -bc -m -w -o lib/ src/'
   exec './node_modules/.bin/coffee -bc -m -w -o .test test/'
