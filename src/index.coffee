@@ -4,7 +4,7 @@ wrapper =
   Master: Master
   run: (serverModule, opts = {}, cb = ->) ->
     if typeof opts is 'function'
-      [cb, opts] = [opts, ->]
+      [cb, opts] = [opts, {}]
 
     opts.forceKillTimeout ?= process.env.FORCE_KILL_TIMOUT
     opts.host             ?= process.env.HOST
