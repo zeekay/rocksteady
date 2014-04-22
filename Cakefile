@@ -27,10 +27,10 @@ task 'test', 'run tests', (options) ->
 
   exec "NODE_ENV=test ./node_modules/.bin/mocha
   --colors
-  --compilers coffee:coffee-script
   --reporter spec
-  --require test/_helper.js
   --timeout 5000
+  --compilers coffee:coffee-script/register
+  --require postmortem/register
   #{grep}
   #{test}"
 
