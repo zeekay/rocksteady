@@ -1,4 +1,4 @@
-## Rocksteady
+## Rocksteady [![Build Status](https://travis-ci.org/zeekay/rocksteady.svg?branch=master)](https://travis-ci.org/zeekay/rocksteady)
 #### Drink blazin' electric death, downtime!
 Fast, zero-downtime apps for production enviroments. Rocksteady runs your node
 app and keeps it running for you. It can reload your app and browser on file
