@@ -73,7 +73,7 @@ server.listen PORT, HOST, ->
     process.setgid SET_GID
     process.setuid SET_UID
 
-server.setTimeout SOCKET_TIMEOUT
+server.setTimeout (parseInt SOCKET_TIMEOUT, 10) * 1000
 
 # handle shutdown
 process.on 'SIGTERM', -> shutdown()

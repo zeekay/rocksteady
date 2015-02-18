@@ -7,6 +7,7 @@ describe 'rocksteady', ->
     it 'should run server module', (done) ->
       rocksteady.run __dirname + '/assets/server', {port: 3333, logger: false}, ->
         request 'http://localhost:3333', (err, res, body) ->
+          console.log arguments
           body.should.eq 'hi'
           done err
 
