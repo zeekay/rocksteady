@@ -45,10 +45,10 @@
     "vigil": "^0.3.7"
   },
   "devDependencies": {
-    "chai": "^1.10.0",
+    "chai": "^2.0.0",
     "coffee-script": "^1.9.1",
     "executive": "^0.4.7",
-    "mocha": "^1.21.5",
+    "mocha": "^2.1.0",
     "request": "^2.53.0"
   }
 }
