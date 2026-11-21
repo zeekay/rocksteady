@@ -1,4 +1,7 @@
 ## Rocksteady [![Build Status](https://travis-ci.org/zeekay/rocksteady.svg?branch=master)](https://travis-ci.org/zeekay/rocksteady)
+
+[![Open in Hanzo](https://hanzo.app/badges/open-in-hanzo.svg)](https://hanzo.app/dev/open?repo=github.com/zeekay/rocksteady&ref=master&action=open) [![Edit with Hanzo](https://hanzo.app/badges/edit-with-hanzo.svg)](https://hanzo.app/dev/open?repo=github.com/zeekay/rocksteady&ref=master&action=edit)
+
 #### Drink blazin' electric death, downtime!
 Fast, zero-downtime apps for production enviroments. Rocksteady runs your node
 app and keeps it running for you. It can reload your app and browser on file
